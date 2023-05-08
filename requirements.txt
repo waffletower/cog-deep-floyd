@@ -1,0 +1,9 @@
+torch==2.0.0
+accelerate==0.18.0
+git+https://github.com/waffletower/diffusers.git@add-size-args-for-superr-pipeline
+huggingface-hub==0.14.1
+safetensors==0.3.1
+tokenizers==0.13.3
+tqdm==4.65.0
+transformers==4.28.1
+sentencepiece==0.1.99

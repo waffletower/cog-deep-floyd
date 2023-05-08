@@ -1,0 +1,72 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import shutil
+from diffusers import DiffusionPipeline, IFPipeline, IFSuperResolutionPipeline
+from diffusers.utils import pt_to_pil
+import torch
+import numpy as np
+
+from predict import MODEL_CACHE, STAGE1_MODEL, STAGE2_MODEL, STAGE3_MODEL, HUGGINGFACE_TOKEN
+
+# if os.path.exists(MODEL_CACHE):
+#    shutil.rmtree(MODEL_CACHE)
+os.makedirs(MODEL_CACHE, exist_ok=True)
+
+# stage 1
+stage1 = IFPipeline.from_pretrained(STAGE1_MODEL,
+                                    cache_dir=MODEL_CACHE,
+                                    variant="fp16",
+                                    torch_dtype=torch.float16,
+                                    use_auth_token=HUGGINGFACE_TOKEN)
+stage1.enable_model_cpu_offload()
+
+# stage 2
+stage2 = IFSuperResolutionPipeline.from_pretrained(STAGE2_MODEL,
+                                                   cache_dir=MODEL_CACHE,
+                                                   text_encoder=None,
+                                                   variant="fp16",
+                                                   torch_dtype=torch.float16,
+                                                   use_auth_token=HUGGINGFACE_TOKEN)
+stage2.enable_model_cpu_offload()
+
+# stage 3
+safety_modules = {"feature_extractor": stage1.feature_extractor,
+                  "safety_checker": stage1.safety_checker,
+                  "watermarker": stage1.watermarker}
+
+stage3 = DiffusionPipeline.from_pretrained(STAGE3_MODEL,
+                                           **safety_modules,
+                                           cache_dir=MODEL_CACHE,
+                                           torch_dtype=torch.float16,
+                                           use_auth_token=HUGGINGFACE_TOKEN)
+stage3.enable_model_cpu_offload()
+
+
+prompt = 'A picture of vintage Mickey Mouse with a sad face, in a steel art deco bank vault'
+
+# text embeds
+prompt_embeds, negative_embeds = stage1.encode_prompt(prompt)
+
+base_seed = np.random.randint(0, sys.maxsize)
+for x in range(1):
+
+    generator = torch.manual_seed(base_seed + x)
+
+    image = stage1(prompt_embeds=prompt_embeds,
+                   negative_prompt_embeds=negative_embeds,
+                   generator=generator,
+                   output_type="pt").images
+    
+    image = stage2(image=image,
+                   prompt_embeds=prompt_embeds,
+                   negative_prompt_embeds=negative_embeds,
+                   generator=generator,
+                   output_type="pt").images
+
+    image = stage3(prompt=prompt,
+                   image=image,
+                   generator=generator,
+                   noise_level=100).images
+    image[0].save(f"output.png")
