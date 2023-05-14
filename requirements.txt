@@ -7,3 +7,4 @@ tokenizers==0.13.3
 tqdm==4.65.0
 transformers==4.28.1
 sentencepiece==0.1.99
+colorlog==6.7.0
