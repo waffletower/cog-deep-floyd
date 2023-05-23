@@ -6,11 +6,6 @@ from diffusers import (
     DiffusionPipeline,
     IFPipeline,
     IFSuperResolutionPipeline,
-    PNDMScheduler,
-    LMSDiscreteScheduler,
-    DDIMScheduler,
-    EulerDiscreteScheduler,
-    EulerAncestralDiscreteScheduler,
     DDPMScheduler,
     DPMSolverMultistepScheduler,
     DPMSolverSinglestepScheduler,
@@ -53,27 +48,19 @@ def set_scheduler(stage, scheduler_name):
              scheduler = DPMSolverMultistepScheduler.from_config(config)
              scheduler.lambda_min_clipped = -5.1
              scheduler.is_predicting_variance = True
-
+             scheduler.config.algorithm_type = 'dpmsolver++'
+             
+        case "SDE-DPMSolverMultistep":
+             scheduler = DPMSolverMultistepScheduler.from_config(config)
+             scheduler.lambda_min_clipped = -5.1
+             scheduler.is_predicting_variance = True
+             scheduler.config.algorithm_type = 'sde-dpmsolver++'
+             
         case "DPMSolverSinglestep":
              scheduler = DPMSolverSinglestepScheduler.from_config(config)
              scheduler.lambda_min_clipped = -5.1
              scheduler.is_predicting_variance = True
              
-        case "PNDM":
-             scheduler = PNDMScheduler.from_config(config)
-             
-        case "KLMS":
-             scheduler = LMSDiscreteScheduler.from_config(config)
-             
-        case "DDIM":
-             scheduler = DDIMScheduler.from_config(config)
-
-        case "K_EULER":
-             scheduler = EulerDiscreteScheduler.from_config(config)
-
-        case "K_EULER_ANCESTRAL":
-             scheduler = EulerAncestralDiscreteScheduler.from_config(config)
-
     print(f"assigning scheduler {type(scheduler)} ({scheduler_name})")
     stage.scheduler = scheduler
     return stage
@@ -149,28 +136,20 @@ class Predictor(BasePredictor):
         scheduler: str = Input(
             default="DDPM",
             choices=[
-                "DDIM",
                 "DDPM",
                 "DPMSolverMultistep",
+                "SDE-DPMSolverMultistep",
                 "DPMSolverSinglestep",
-                "K_EULER",
-                "K_EULER_ANCESTRAL",
-                "KLMS",
-                "PNDM",
             ],
 	    description="Choose a scheduler.",
 	),
         super_scheduler: str = Input(
             default="DPMSolverMultistep",
             choices=[
-                "DDIM",
                 "DDPM",
                 "DPMSolverMultistep",
+                "SDE-DPMSolverMultistep",
                 "DPMSolverSinglestep",
-                "K_EULER",
-                "K_EULER_ANCESTRAL",
-                "KLMS",
-                "PNDM",
             ],
 	    description="Choose a scheduler.",
 	),
