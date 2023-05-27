@@ -88,11 +88,9 @@ class Predictor(BasePredictor):
         self.stage2.enable_model_cpu_offload()
 
         # stage 3
-        self.safety_modules = {}
-
-        # self.safety_modules = {"feature_extractor": self.stage1.feature_extractor,
-        #                        "safety_checker": self.stage1.safety_checker,
-        #                        "watermarker": self.stage1.watermarker}
+        self.safety_modules = {"feature_extractor": self.stage1.feature_extractor,
+                               "safety_checker": self.stage1.safety_checker,
+                               "watermarker": self.stage1.watermarker}
 
         self.stage3 = DiffusionPipeline.from_pretrained(STAGE3_MODEL,
                                                         **(self.safety_modules),
