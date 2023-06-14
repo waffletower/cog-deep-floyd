@@ -26,7 +26,7 @@ Provide Hugging Face token:
 
 	export HUGGINGFACE_TOKEN='{{YOUR HUGGINGFACE API TOKEN HERE}}'
 
-Download the pre-trained weights:
+Download the pre-trained weights (80+ gb):
 
     cog run trial-run-pull
 
@@ -34,7 +34,7 @@ Then, you can run predictions:
 
     cog predict -i prompt="cement mixer churning the World's best potato salad inside"
 
-Or build a standalone image:
+Or build a standalone image (very large: 82.9 gb on my system):
 
 	cog build
 
