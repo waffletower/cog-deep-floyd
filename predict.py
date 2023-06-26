@@ -160,7 +160,7 @@ class Predictor(BasePredictor):
         
         # text embeds
         print(f"prompt: {prompt}")
-        prompt_embeds, negative_embeds = self.stage1.encode_prompt(prompt)
+        prompt_embeds, negative_embeds = self.stage1.encode_prompt(prompt, negative_prompt=negative_prompt)
 
         seed = seed or np.random.randint(0, sys.maxsize)
         generator = torch.manual_seed(seed)
